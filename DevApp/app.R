@@ -12,37 +12,62 @@ library(shiny)
 library(shinyjs)
 library(ggplot2)
 
+load("paragraphs.RData")
+
 # Define UI for application that draws a histogram
 ui <- fluidPage(useShinyjs(),
   
    # loads javascript file that tracks keystroke times
    tags$head(tags$script(src="jstyping.js")),
    
-   # Application title
-   titlePanel("Typing App"),
-   
-   # Sidebar with a slider input for number of bins 
-   sidebarLayout(
-      sidebarPanel(
-         textInput("typing_input","Type here",value=""),
-         actionButton("get_typing_times","submit"),
-         sliderInput("bins",
-                     "Number of bins:",
-                     min = 1,
-                     max = 50,
-                     value = 30)
-      ),
-      
-      # Show a plot of the generated distribution
-      mainPanel(
-         plotOutput("distPlot"),
-         plotOutput("meanPlot")
-      )
-   )
+   tabsetPanel(
+     tabPanel("Typing",
+         # Sidebar with a slider input for number of bins 
+         sidebarLayout(
+            sidebarPanel(
+               sliderInput("pnum",
+                           "Select Paragraph:",
+                           min = 1,
+                           max = 50,
+                           value = 1),
+               actionButton("load_paragraph","start")
+            ),
+            
+            # Show a plot of the generated distribution
+            mainPanel(
+               p(textOutput("some_paragraph")),
+               textAreaInput("input_typing", "type here", value = "", width = 500, height = 200,cols = NULL, rows = 10, placeholder = NULL, resize = NULL)
+            )
+         )
+     ),
+     tabPanel("Performance",
+              # Sidebar with a slider input for number of bins 
+              sidebarLayout(
+                sidebarPanel(
+                  actionButton("get_typing_times","get results"),
+                  sliderInput("bins",
+                              "Number of bins:",
+                              min = 1,
+                              max = 50,
+                              value = 30)
+                ),
+                
+                # Show a plot of the generated distribution
+                mainPanel(
+                  plotOutput("distPlot"),
+                  plotOutput("meanPlot")
+                )
+              )
+     )
+  )
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  
+  output$some_paragraph<- renderText({
+    Alice_paragraphs[input$pnum]
+  })
   
   # create a shiny reactive variable that will
   # receive javascript timestamps from keystrokes
