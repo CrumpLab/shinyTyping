@@ -30,7 +30,7 @@ ui <- fluidPage(useShinyjs(),
                                sliderInput("pnum",
                                            "Select Paragraph:",
                                            min = 1,
-                                           max = 50,
+                                           max = length(Alice_paragraphs),
                                            value = 1),
                                actionButton("load_paragraph","start")
                              ),
