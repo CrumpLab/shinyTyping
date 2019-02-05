@@ -7,7 +7,7 @@ update_typing_times = function(){
 
 
 $(document).ready(function(){
- $('#input_typing').click(function() { d= new Date(); }); 
+ $('#input_typing').mouseup(function() { d= new Date(); }); 
 });
 
 $(function(){
