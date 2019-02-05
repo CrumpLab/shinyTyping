@@ -6,17 +6,18 @@
 #
 #    http://shiny.rstudio.com/
 #
-
+#SET WORKING DIRECTORY TO DEVAPP
 
 library(shiny)
 library(shinyjs)
 library(ggplot2)
 library(data.table)
+source("read_more_text.R")
+# to use loadTXT function: if you have  txt file "cats.txt", and you want it's variable name to be "cats"
+# loadTXT("cats.txt","cats")    <--- Run this in the console
+# then in the selectInput function, add "Cats Paragraph Title " = "cats" (has to match variable name)
 load("paragraphs.RData")
-#letter_freqs <- fread("ngrams1.csv",integer64="numeric")
-#letter_freqs[letter_freqs==0]<-1
-#letter_freqs_uni=letter_freqs[,1:2]
-# Define UI for application that draws a histogram
+
 ui <- fluidPage(useShinyjs(),
                 
                 # loads javascript file that tracks keystroke times
@@ -27,17 +28,22 @@ ui <- fluidPage(useShinyjs(),
                            # Sidebar with a slider input for number of bins 
                            sidebarLayout(
                              sidebarPanel(
-                               sliderInput("pnum",
-                                           "Select Paragraph:",
-                                           min = 1,
-                                           max = length(Alice_paragraphs),
-                                           value = 1),
-                               actionButton("load_paragraph","start")
+                               selectInput(inputId="source",
+                                           label="Text Source:",
+                                           choices=c("Alice in Wonderland"="alice","Cats Simple Wiki" ="cats",
+                                                     "Trigram Structured English"="trigram",
+                                                     "Bigram Structured English"="bigram",
+                                                     "Letter Frequency English"="unigram",
+                                                     "Random Letters"="random",
+                                                     "Chinese New Year" = "newyear"),
+                                           selected = "Alice in Wonderland"),
+                               uiOutput("outSlider"),
+                              actionButton("load_paragraph","start")
                              ),
                              
                              # Show a plot of the generated distribution
                              mainPanel(
-                               p(textOutput("some_paragraph")),
+                               p(uiOutput("some_paragraph")),
                                textAreaInput("input_typing", "type here", value = "", width = 500, height = 200,cols = NULL, rows = 10, placeholder = NULL, resize = NULL)
                               
                                )
@@ -69,9 +75,17 @@ ui <- fluidPage(useShinyjs(),
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+  output$outSlider=renderUI(
+    {txtSrc=allParagraphs[[which(names(allParagraphs)==input$source)]]
+     sliderInput("pnum","Paragraph #:",min=1,max=length(txtSrc),
+                 value=1)
+      
+    }
+    )
   
-  output$some_paragraph<- renderText({
-    Alice_paragraphs[input$pnum]
+  output$some_paragraph<- renderUI({
+    txtSrc=allParagraphs[[which(names(allParagraphs)==input$source)]]
+    return(txtSrc[input$pnum])
   })
   
   # create a shiny reactive variable that will
