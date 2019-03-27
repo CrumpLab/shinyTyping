@@ -1,3 +1,4 @@
+
 #
 # This is a Shiny web application. You can run the application by clicking
 # the 'Run App' button above.
@@ -38,15 +39,15 @@ ui <- fluidPage(useShinyjs(),
                                                      "Chinese New Year" = "newyear"),
                                            selected = "Alice in Wonderland"),
                                uiOutput("outSlider"),
-                              actionButton("load_paragraph","start")
+                               actionButton("load_paragraph","start")
                              ),
                              
                              # Show a plot of the generated distribution
                              mainPanel(
                                p(uiOutput("some_paragraph")),
                                textAreaInput("input_typing", "type here", value = "", width = 500, height = 200,cols = NULL, rows = 10, placeholder = NULL, resize = NULL)
-                              
-                               )
+                               
+                             )
                            )
                   ),
                   tabPanel("Performance",
@@ -70,18 +71,18 @@ ui <- fluidPage(useShinyjs(),
                   )
                 )
                 
-
+                
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
   output$outSlider=renderUI(
     {txtSrc=allParagraphs[[which(names(allParagraphs)==input$source)]]
-     sliderInput("pnum","Paragraph #:",min=1,max=length(txtSrc),
-                 value=1)
-      
+    sliderInput("pnum","Paragraph #:",min=1,max=length(txtSrc),
+                value=1)
+    
     }
-    )
+  )
   
   output$some_paragraph<- renderUI({
     txtSrc=allParagraphs[[which(names(allParagraphs)==input$source)]]
@@ -129,5 +130,4 @@ server <- function(input, output) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
-
 
