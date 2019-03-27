@@ -5,6 +5,11 @@ update_typing_times = function(){
   Shiny.setInputValue("typing_times",js_typing_times);
 };
 
+
+$(document).ready(function(){
+ $('#input_typing').mouseup(function() { d= new Date(); }); 
+});
+
 $(function(){
 		/*
 		 * this swallows backspace keys on any non-input element.
