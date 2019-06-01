@@ -10,6 +10,7 @@
 #jsTest.R is also referring to jstyping3.js and it only will save timestamps and characters when user
 #keypresses inside the textarea.  app2.R only will save timestamps when user keypresses inside text area
 # but will save characters when user is keypressing in the login area
+library(shinyalert)
 library(fireData)
 library(shiny)
 library(shinyjs)
@@ -25,7 +26,7 @@ load(file="paragraphs.Rdata")
 
 fields=c("source","pnum")
 ui <- fluidPage(useShinyjs(),
-                
+                useShinyalert(),
                 # loads javascript file that tracks keystroke times
                 tags$head(tags$script(src="jstyping3.js")),
                 
@@ -48,7 +49,7 @@ ui <- fluidPage(useShinyjs(),
                               actionButton("load_paragraph","start"),
                              uiOutput("username"),
                               uiOutput("password"),
-                              actionButton("login_button","Login")
+                              actionButton("login_button","Login/Register")
                              ),
                              
                              # Show a plot of the generated distribution
@@ -63,7 +64,7 @@ ui <- fluidPage(useShinyjs(),
                            # Sidebar with a slider input for number of bins 
                            sidebarLayout(
                              sidebarPanel(
-                               actionButton("get_typing_times","get results"),
+                               actionButton("get_typing_times","CLICK ME TO GET RESULTS"),
                                sliderInput("bins",
                                            "Number of bins:",
                                            min = 1,
@@ -120,7 +121,7 @@ server <- function(input, output) {
   })
   # textInput box for username input$username will refer to whatever is typed in the box
   output$username=renderUI({
-    textInput("username","Username: ","")
+    textInput("username","LOGIN/REGISTER FIRST WITH YOUR EMAIL: ","")
   })
   # textInput box for password input$password will refer to whatever is typed in the box
   output$password=renderUI({
@@ -294,9 +295,9 @@ server <- function(input, output) {
   performance=performanceChart()
     perfSum=performance %>%
       group_by(wordCountVector)%>%
-      summarise(length=n()-1,editDist=mean(editDist),word=word[1])
+      summarise(length=n()-1,editDist=mean(editDist,na.rm = TRUE),word=word[1])
     perfSum[1,]$length=perfSum[1,]$length+1
-    errorRate = mean(perfSum$editDist)/mean(perfSum$length)
+    errorRate = mean(perfSum$editDist,na.rm = TRUE)/mean(perfSum$length)
     return(errorRate)
   })
   # displays the accuracy
@@ -305,9 +306,27 @@ server <- function(input, output) {
     1-accuracy()
   })
   #WHEN USER CLICKS LOGIN , attempt to register them, if email exists, then nothing happens
-  onevent("mousedown","login_button" ,createUser("AIzaSyAjwVreEwJRjH1E-pRSpTONe3sfXtgEQaQ", email = username(),password=password()) )
+  #onevent("mousedown","login_button" ,createUser("AIzaSyAjwVreEwJRjH1E-pRSpTONe3sfXtgEQaQ", email = username(),password=password()) )
+  observeEvent(input$login_button,{
+    loginAttempt=auth("AIzaSyAjwVreEwJRjH1E-pRSpTONe3sfXtgEQaQ", email = username(),password=password())
+    if(length(loginAttempt)==1)
+    {
+      if(loginAttempt$error$errors[[1]]$message=="EMAIL_NOT_FOUND")
+        {shinyalert(title="That Email Is not Registered. Click OK to Register.  Click Cancel to Cancel.",type="input", showCancelButton=TRUE, callbackR = function(x){
+                createUser("AIzaSyAjwVreEwJRjH1E-pRSpTONe3sfXtgEQaQ", email = username(),password=password()
+                           )})
+        
+        
+      }
+      else
+        showModal(modalDialog("InvalidPassword"))
+    }
+    else
+      showModal(modalDialog("Login Successful"))
+  })
   #SAVE UPON BUTTON CLICK
   observeEvent(input$save,{
+   
     localId=auth("AIzaSyAjwVreEwJRjH1E-pRSpTONe3sfXtgEQaQ", email = username(),password=password())$localId
     
     upload(x = performanceChart(), projectURL = "https://shinytyping-2f153.firebaseio.com/", directory = localId)
